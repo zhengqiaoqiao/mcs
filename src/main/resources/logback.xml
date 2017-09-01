@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="60 seconds" debug="false">
+	<jmxConfigurator />
+	<!-- 级别排序为： TRACE < DEBUG < INFO < WARN < ERROR -->
+	<contextName>elasticsearch</contextName> 
+	
+	<property name="LOG_HOME" value="${user.dir}/logs" />
+   	<property name="LOG_LEVEL" value="DEBUG" />
+
+	<property name="SYS_NAME" value="elasticsearch" />
+	<property name="LOG_NAME" value="elasticsearch" />
+	
+	<appender name="STDOUT-OUT" class="ch.qos.logback.core.ConsoleAppender">
+		<!-- 将过滤器的日志级别配置为INFO，所有INFO级别的日志交给appender处理，非INFO级别的日志，被过滤掉 -->
+		<filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>WARN</level>
+            <onMatch>DENY</onMatch>
+            <onMismatch>NEUTRAL</onMismatch>
+        </filter>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>ERROR</level>
+            <onMatch>DENY</onMatch>
+            <onMismatch>NEUTRAL</onMismatch>
+        </filter>
+		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+			<Pattern>
+				<!--格式化输出：%d表示日期，%thread表示线程名，%-5level：级别从左显示5个字符宽度%msg：日志消息，%n是换行符-->
+				%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{50} - %msg%n
+			</Pattern>
+		</encoder>
+		<target>System.out</target>
+	</appender>
+	
+	<appender name="STDOUT-ERR" class="ch.qos.logback.core.ConsoleAppender">
+		<!-- 过滤掉 TRACE 和 DEBUG 级别的日志-->   
+	    <filter class="ch.qos.logback.classic.filter.ThresholdFilter">   
+	      <level>WARN</level>   
+	    </filter>   
+		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+			<Pattern>
+				%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{50} - %msg%n
+			</Pattern>
+		</encoder>
+		<target>System.err</target>
+	</appender>
+	
+	<!-- 日志文件 -->
+	<appender name="FILE-AUDIT" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>${LOG_HOME}/${SYS_NAME}/${LOG_NAME}.log</file>
+		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+			<Pattern>
+				%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{50} - %msg%n
+			</Pattern>
+		</encoder>
+
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<!-- rollover daily -->
+			<fileNamePattern>
+				${LOG_HOME}/${SYS_NAME}/archived/${LOG_NAME}.%d{yyyy-MM-dd}.%i.log
+            </fileNamePattern>
+			<timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+				<maxFileSize>10MB</maxFileSize>
+			</timeBasedFileNamingAndTriggeringPolicy>
+			<!--日志文件保留天数-->
+			<MaxHistory>60</MaxHistory>
+		</rollingPolicy>
+
+	</appender>
+	
+	<!-- error级别错误日志文件 -->
+	<appender name="FILE-ERROR" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>${LOG_HOME}/${SYS_NAME}/${LOG_NAME}-error.log</file>
+		<filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>ERROR</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+			<Pattern>
+				%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{30} - %msg%n
+			</Pattern>
+		</encoder>
+
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<!-- rollover daily -->
+			<fileNamePattern>
+				${LOG_HOME}/${SYS_NAME}/archived-error/${LOG_NAME}.%d{yyyy-MM-dd}.%i.log
+            </fileNamePattern>
+			<timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+				<maxFileSize>10MB</maxFileSize>
+			</timeBasedFileNamingAndTriggeringPolicy>
+			<!--日志文件保留天数-->
+			<MaxHistory>180</MaxHistory>
+		</rollingPolicy>
+
+	</appender>
+	
+	<logger name="com.yougou.ims" level="${LOG_LEVEL}"></logger>
+	
+	<root level="INFO">
+        <appender-ref ref="STDOUT-OUT" />
+        <appender-ref ref="STDOUT-ERR" />
+        <appender-ref ref="FILE-AUDIT" />
+        <appender-ref ref="FILE-ERROR" />
+    </root>
+
+</configuration>
